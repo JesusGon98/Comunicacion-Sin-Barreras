@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Símbolo de "Comunicación sin Barreras": globo azul con la seña "te quiero" (🤟)
+       y globo verde azulado con ondas de voz. Fuente de todos los íconos: npm run icons -->
+  <defs>
+    <linearGradient id="azul" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a86f5"/>
+      <stop offset="1" stop-color="#0a3fb8"/>
+    </linearGradient>
+    <linearGradient id="verde" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2fd0bb"/>
+      <stop offset="1" stop-color="#0c9a87"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Globo verde (atrás, derecha) -->
+  <path d="M396 398 L456 466 L336 420 Z" fill="#11a28f" stroke="#11a28f" stroke-width="10" stroke-linejoin="round"/>
+  <ellipse cx="352" cy="312" rx="146" ry="118" fill="url(#verde)"/>
+
+  <!-- Globo azul (adelante, izquierda), con borde blanco que lo separa del verde -->
+  <g stroke="#fff" stroke-width="16" stroke-linejoin="round">
+    <ellipse cx="208" cy="208" rx="176" ry="150" fill="url(#azul)"/>
+  </g>
+  <path d="M102 318 L74 412 L182 350 Z" fill="url(#azul)" stroke="url(#azul)" stroke-width="12" stroke-linejoin="round"/>
+  <ellipse cx="208" cy="208" rx="168" ry="142" fill="url(#azul)"/>
+
+  <!-- Ondas de voz -->
+  <g stroke="#fff" stroke-width="15" stroke-linecap="round">
+    <line x1="384" y1="292" x2="384" y2="332"/>
+    <line x1="410" y1="268" x2="410" y2="356"/>
+    <line x1="436" y1="246" x2="436" y2="378"/>
+    <line x1="462" y1="272" x2="462" y2="352"/>
+  </g>
+
+  <!-- Mano: seña "te quiero" (meñique, índice y pulgar arriba) -->
+  <g transform="translate(204 222) scale(0.82) translate(-204 -206)">
+  <g stroke="#fff" stroke-linecap="round" fill="none">
+    <line x1="150" y1="210" x2="140" y2="118" stroke-width="38"/>
+    <line x1="238" y1="200" x2="250" y2="88" stroke-width="40"/>
+    <line x1="182" y1="214" x2="182" y2="178" stroke-width="34"/>
+    <line x1="212" y1="212" x2="212" y2="172" stroke-width="34"/>
+    <line x1="246" y1="262" x2="316" y2="214" stroke-width="38"/>
+    <!-- marcas de movimiento -->
+    <line x1="282" y1="104" x2="302" y2="78" stroke-width="13"/>
+    <line x1="292" y1="138" x2="326" y2="124" stroke-width="13"/>
+  </g>
+  <path d="M130 200 H262 V268 C262 314 230 336 196 336 C158 336 130 312 130 276 Z" fill="#fff"/>
+  <!-- detalles en azul: separación de los dedos doblados y pliegue de la palma -->
+  <g stroke="#0d4fc9" stroke-width="6" stroke-linecap="round" fill="none">
+    <line x1="197" y1="170" x2="197" y2="204"/>
+    <path d="M238 254 C220 268 212 292 216 318"/>
+  </g>
+  </g>
+</svg>

@@ -217,7 +217,7 @@ export function ensureBundledPackage(lang: SignLanguageConfig): Promise<void> {
         const current = await getOfficialPackageInfo(lang.id);
         if (current && current.version >= bundled.version) return; // ya está al día
 
-        const res = await fetch(`${import.meta.env.BASE_URL}${bundled.file}`);
+        const res = await fetch(new URL(bundled.file, document.baseURI).href);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const text = await res.text();
         const parsed = parseMediapipePackage(JSON.parse(text), lang);

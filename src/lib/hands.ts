@@ -6,7 +6,7 @@ import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
 import type { Landmark } from './normalize';
 
 // Archivos locales (copiados en public/) para que funcione sin internet
-const BASE = import.meta.env.BASE_URL;
+const BASE = document.baseURI.replace(/[^/]*$/, ''); // carpeta base de la app (<base href>)
 const WASM_PATH = `${BASE}mediapipe/wasm`;
 const MODEL_PATH = `${BASE}models/hand_landmarker.task`;
 

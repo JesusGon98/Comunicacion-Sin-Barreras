@@ -1,0 +1,26 @@
+{
+  "id": "/",
+  "name": "Comunicación sin Barreras — Traductor LSM",
+  "short_name": "Sin Barreras",
+  "description": "Ayuda a personas oyentes y personas sordas a comunicarse con voz, texto y Lengua de Señas Mexicana.",
+  "lang": "es-MX",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#f6f4f0",
+  "categories": ["education", "utilities", "social"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Conversación", "url": "./", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Ver señas", "url": "./texto-a-senas", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Cámara", "url": "./senas-a-texto", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

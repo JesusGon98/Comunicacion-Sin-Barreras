@@ -1,0 +1,267 @@
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { currentLanguage } from '../../config/language';
+import { getOfficialPackageInfo, getOfficialSamples, getSignSamples, type OfficialPackageInfo } from '../../lib/db';
+import { ensureBundledPackage } from '../../lib/officialPackage';
+import { onSignsChanged } from '../../lib/signData';
+import { checkForUpdate, downloadAndInstall, type RemoteVersion } from '../../lib/updates';
+import { InstallButton } from '../core/install-button';
+import { errorText } from '../core/platform';
+import { Icon } from '../shared/icon';
+import { TeamTools } from './team-tools';
+
+type CheckState =
+  | { kind: 'idle' }
+  | { kind: 'checking' }
+  | { kind: 'message'; ok: boolean; text: string }
+  | { kind: 'available'; remote: RemoteVersion }
+  | { kind: 'downloading'; remote: RemoteVersion };
+
+interface Stats {
+  signs: number;
+  examples: number;
+  reviewed: number;
+  personalSigns: number;
+  personalExamples: number;
+}
+
+const TEAM_KEY = 'sin-barreras:herramientas-equipo';
+const TAPS_TO_UNLOCK = 5;
+
+function readTeamFlag(): boolean {
+  try {
+    return sessionStorage.getItem(TEAM_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+// Pantalla de Ajustes.
+@Component({
+  selector: 'app-settings',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [Icon, RouterLink, InstallButton, TeamTools],
+  template: `
+    <section class="page page--settings" aria-labelledby="titulo-ajustes">
+      <header class="page-head">
+        <div class="page-head__text">
+          <h1 id="titulo-ajustes">Ajustes</h1>
+          <p class="page-head__intro">Paquete de señas, tus señas personales e instalación.</p>
+        </div>
+        <!-- En celular no hay barra lateral: el botón "Instalar app" vive aquí -->
+        <app-install-button />
+      </header>
+
+      <div class="settings-grid">
+        <section class="card" aria-labelledby="titulo-paquete">
+          <div class="card__head">
+            <span class="card__icon"><app-icon name="hand" [size]="22" /></span>
+            <h2 id="titulo-paquete">Paquete oficial de señas</h2>
+          </div>
+
+          @if (info(); as i) {
+            <dl class="facts">
+              <dt>Versión</dt>
+              <dd>
+                <!-- Tocar aquí 5 veces muestra las herramientas del equipo -->
+                <button type="button" class="facts__plain" (click)="tapVersion()">v{{ i.version }}</button>
+              </dd>
+              <dt>Publicado</dt>
+              <dd>{{ i.fecha || '—' }}</dd>
+              <dt>Origen</dt>
+              <dd>
+                {{ i.fuente === 'drive' ? 'Descargado de Google Drive el ' + formatDate(i.downloadedAt) : 'Incluido con la app' }}
+              </dd>
+              @if (i.origen) {
+                <dt>Datos</dt>
+                <dd>{{ i.origen === 'sintetico' ? 'Sintéticos (generados por computadora)' : i.origen }}</dd>
+              }
+              @if (stats(); as s) {
+                <dt>Contenido</dt>
+                <dd>
+                  {{ s.signs }} señas, {{ s.examples }} ejemplos<br />
+                  <span class="muted small">Revisadas por una persona que sabe LSM: {{ s.reviewed }} de {{ s.signs }}</span>
+                </dd>
+              }
+              @if (i.notas) {
+                <dt>Notas</dt>
+                <dd>{{ i.notas }}</dd>
+              }
+            </dl>
+          } @else {
+            <p class="muted">No hay ningún paquete oficial guardado todavía.</p>
+          }
+
+          @if (availableRemote(); as remote) {
+            <div class="banner banner--accent" role="status">
+              <app-icon name="sparkle" />
+              <p class="banner__text">
+                <strong>Hay una versión nueva (v{{ remote.version }})</strong>{{ remote.notas ? ': ' + remote.notas : '' }}
+              </p>
+              <div class="row">
+                <button type="button" class="btn btn--ghost btn--sm" (click)="check.set({ kind: 'idle' })">
+                  Más tarde
+                </button>
+                <button type="button" class="btn btn--primary btn--sm" (click)="update(remote)">Actualizar</button>
+              </div>
+            </div>
+          } @else {
+            <button
+              type="button"
+              class="btn btn--soft"
+              (click)="search()"
+              [disabled]="check().kind === 'checking' || check().kind === 'downloading'"
+            >
+              <app-icon name="refresh" [size]="20" />
+              {{ searchLabel() }}
+            </button>
+          }
+          @if (message(); as m) {
+            <div class="banner" [class.banner--ok]="m.ok" [class.banner--error]="!m.ok" role="status">
+              <app-icon [name]="m.ok ? 'check' : 'info'" />
+              <p class="banner__text">{{ m.text }}</p>
+            </div>
+          }
+          <p class="muted small">
+            Actualizar el paquete nunca borra ni cambia tus señas personales. El reconocimiento usa las dos.
+          </p>
+        </section>
+
+        @if (stats(); as s) {
+          <section class="card" aria-labelledby="titulo-mis-senas">
+            <div class="card__head">
+              <span class="card__icon"><app-icon name="record" [size]="18" /></span>
+              <h2 id="titulo-mis-senas">Mis señas personales</h2>
+            </div>
+            @if (s.personalExamples === 0) {
+              <p>Todavía no has grabado señas propias.</p>
+            } @else {
+              <div class="stats">
+                <span class="badge badge--accent">
+                  {{ s.personalSigns }} {{ s.personalSigns === 1 ? 'seña' : 'señas' }}
+                </span>
+                <span class="badge">{{ s.personalExamples }} {{ s.personalExamples === 1 ? 'ejemplo' : 'ejemplos' }}</span>
+              </div>
+            }
+            <p class="muted small">Se graban, exportan e importan en la pestaña Entrenar de la cámara.</p>
+            <a routerLink="/senas-a-texto" class="btn btn--outline" style="align-self: flex-start">
+              <app-icon name="camera" [size]="20" />
+              Ir a la cámara
+            </a>
+          </section>
+        }
+
+        @if (teamUnlocked()) {
+          <div class="span-2">
+            <app-team-tools [currentVersion]="info()?.version ?? 0" [currentOrigin]="info()?.origen ?? ''" />
+          </div>
+        }
+      </div>
+    </section>
+  `,
+})
+export class SettingsPage {
+  private readonly lang = currentLanguage;
+  protected readonly info = signal<OfficialPackageInfo | null>(null);
+  protected readonly stats = signal<Stats | null>(null);
+  protected readonly check = signal<CheckState>({ kind: 'idle' });
+  protected readonly teamUnlocked = signal(readTeamFlag());
+  private taps = 0;
+
+  protected readonly availableRemote = computed(() => {
+    const c = this.check();
+    return c.kind === 'available' ? c.remote : null;
+  });
+  protected readonly message = computed(() => {
+    const c = this.check();
+    return c.kind === 'message' ? c : null;
+  });
+  protected readonly searchLabel = computed(() => {
+    const c = this.check();
+    if (c.kind === 'checking') return 'Buscando…';
+    if (c.kind === 'downloading') return `Descargando v${c.remote.version}…`;
+    return 'Buscar actualizaciones';
+  });
+
+  constructor() {
+    this.load();
+    const stop = onSignsChanged(() => this.load());
+    inject(DestroyRef).onDestroy(stop);
+  }
+
+  protected formatDate(ms: number): string {
+    return new Date(ms).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  private async load() {
+    await ensureBundledPackage(this.lang);
+    const [pkg, official, personal] = await Promise.all([
+      getOfficialPackageInfo(this.lang.id),
+      getOfficialSamples(this.lang.id),
+      getSignSamples(this.lang.id),
+    ]);
+    const refs = official.filter((s) => s.reference);
+    this.info.set(pkg);
+    this.stats.set({
+      signs: new Set(official.map((s) => s.label)).size,
+      examples: official.length - refs.length,
+      reviewed: refs.filter((s) => s.reviewed).length,
+      personalSigns: new Set(personal.map((s) => s.label)).size,
+      personalExamples: personal.length,
+    });
+  }
+
+  protected async search() {
+    this.check.set({ kind: 'checking' });
+    try {
+      const r = await checkForUpdate(this.lang);
+      if (r.status === 'not-configured') {
+        this.check.set({
+          kind: 'message',
+          ok: false,
+          text: 'Las actualizaciones todavía no están configuradas: faltan la API key y el ID del archivo en src/config/remote.ts.',
+        });
+      } else if (r.status === 'offline') {
+        this.check.set({ kind: 'message', ok: false, text: 'No hay conexión a internet. Intenta de nuevo cuando tengas conexión.' });
+      } else if (r.status === 'up-to-date') {
+        this.check.set({
+          kind: 'message',
+          ok: true,
+          text: `Tienes la versión más reciente (v${r.current?.version ?? r.remote.version}).`,
+        });
+      } else {
+        this.check.set({ kind: 'available', remote: r.remote });
+      }
+    } catch (err) {
+      this.check.set({ kind: 'message', ok: false, text: errorText(err, 'No se pudo revisar.') });
+    }
+  }
+
+  protected async update(remote: RemoteVersion) {
+    this.check.set({ kind: 'downloading', remote });
+    try {
+      const r = await downloadAndInstall(this.lang, remote);
+      this.check.set({ kind: 'message', ok: true, text: `Señas actualizadas a la versión ${r.version} (${r.signs} señas).` });
+    } catch (err) {
+      const prev = this.info();
+      this.check.set({
+        kind: 'message',
+        ok: false,
+        text: `No se pudo actualizar. ${errorText(err)} ${prev ? `Se conserva el paquete anterior (v${prev.version}).` : ''}`,
+      });
+    }
+  }
+
+  /** Herramientas del equipo: se muestran tocando 5 veces la versión del paquete. */
+  protected tapVersion() {
+    this.taps++;
+    if (this.taps >= TAPS_TO_UNLOCK && !this.teamUnlocked()) {
+      try {
+        sessionStorage.setItem(TEAM_KEY, '1');
+      } catch {
+        /* sin almacenamiento: solo dura mientras la pantalla esté abierta */
+      }
+      this.teamUnlocked.set(true);
+    }
+  }
+}

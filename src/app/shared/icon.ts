@@ -1,0 +1,211 @@
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+
+export type IconName =
+  | 'chat'
+  | 'hand'
+  | 'camera'
+  | 'mic'
+  | 'mic-off'
+  | 'speaker'
+  | 'gear'
+  | 'switch-camera'
+  | 'power'
+  | 'backspace'
+  | 'trash'
+  | 'space'
+  | 'expand'
+  | 'sliders'
+  | 'download'
+  | 'upload'
+  | 'send'
+  | 'play'
+  | 'pause'
+  | 'prev'
+  | 'next'
+  | 'repeat'
+  | 'flip'
+  | 'close'
+  | 'edit'
+  | 'plus'
+  | 'check'
+  | 'info'
+  | 'stop'
+  | 'refresh'
+  | 'chevron-down'
+  | 'sparkle'
+  | 'record';
+
+// Íconos SVG sencillos (sin librerías externas, para que funcionen sin internet).
+// Siempre van acompañados de texto visible o de un aria-label en el botón, por eso aria-hidden.
+@Component({
+  selector: 'app-icon',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'icon', 'aria-hidden': 'true' },
+  template: `
+    <svg
+      [attr.width]="size()"
+      [attr.height]="size()"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      @switch (name()) {
+        @case ('chat') {
+          <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />
+        }
+        @case ('hand') {
+          <path d="M8 13V5a1.5 1.5 0 0 1 3 0v6" />
+          <path d="M11 11V3.5a1.5 1.5 0 0 1 3 0V11" />
+          <path d="M14 11V5a1.5 1.5 0 0 1 3 0v7" />
+          <path d="M17 9.5a1.5 1.5 0 0 1 3 0V14a8 8 0 0 1-8 8h-1a7 7 0 0 1-5.6-2.8L3 16a1.6 1.6 0 0 1 2.4-2.1L8 16" />
+        }
+        @case ('camera') {
+          <path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <circle cx="12" cy="13" r="4" />
+        }
+        @case ('mic') {
+          <rect x="9" y="3" width="6" height="11" rx="3" />
+          <path d="M5 11a7 7 0 0 0 14 0" />
+          <path d="M12 18v3" />
+        }
+        @case ('mic-off') {
+          <path d="M15 9.3V6a3 3 0 0 0-5.7-1.3" />
+          <path d="M9 9v2a3 3 0 0 0 5 2.2" />
+          <path d="M5 11a7 7 0 0 0 11.6 5.3" />
+          <path d="M19 11a7 7 0 0 1-.6 2.8" />
+          <path d="M12 18v3" />
+          <path d="M3 3l18 18" />
+        }
+        @case ('speaker') {
+          <path d="M4 9v6h4l5 4V5L8 9z" />
+          <path d="M16.5 8.5a5 5 0 0 1 0 7" />
+          <path d="M19 6a8.5 8.5 0 0 1 0 12" />
+        }
+        @case ('gear') {
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
+          />
+        }
+        @case ('switch-camera') {
+          <path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <path d="M9 12.5a3 3 0 0 1 5.2-2" />
+          <path d="M14.5 8.5v2h-2" />
+          <path d="M15 13.5a3 3 0 0 1-5.2 2" />
+          <path d="M9.5 17.5v-2h2" />
+        }
+        @case ('power') {
+          <path d="M12 3v9" />
+          <path d="M6.3 6.3a8 8 0 1 0 11.4 0" />
+        }
+        @case ('backspace') {
+          <path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z" />
+          <path d="M13 9.5l5 5" />
+          <path d="M18 9.5l-5 5" />
+        }
+        @case ('trash') {
+          <path d="M4 7h16" />
+          <path d="M9 7V4h6v3" />
+          <path d="M6 7l1 13h10l1-13" />
+        }
+        @case ('space') {
+          <path d="M4 10v4h16v-4" />
+        }
+        @case ('expand') {
+          <path d="M4 9V4h5" />
+          <path d="M20 9V4h-5" />
+          <path d="M4 15v5h5" />
+          <path d="M20 15v5h-5" />
+        }
+        @case ('sliders') {
+          <path d="M4 7h10" />
+          <path d="M18 7h2" />
+          <circle cx="16" cy="7" r="2" />
+          <path d="M4 17h4" />
+          <path d="M12 17h8" />
+          <circle cx="10" cy="17" r="2" />
+        }
+        @case ('download') {
+          <path d="M12 3v12" />
+          <path d="M7 10l5 5 5-5" />
+          <path d="M5 21h14" />
+        }
+        @case ('upload') {
+          <path d="M12 15V3" />
+          <path d="M7 8l5-5 5 5" />
+          <path d="M5 21h14" />
+        }
+        @case ('send') {
+          <path d="M4 12l16-8-6 16-2.5-6.5z" />
+          <path d="M11.5 13.5L20 4" />
+        }
+        @case ('play') {
+          <path d="M7 4.5v15a1 1 0 0 0 1.5.9l12-7.5a1 1 0 0 0 0-1.8l-12-7.5A1 1 0 0 0 7 4.5z" fill="currentColor" />
+        }
+        @case ('pause') {
+          <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor" />
+          <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor" />
+        }
+        @case ('prev') {
+          <path d="M15 5l-7 7 7 7" />
+        }
+        @case ('next') {
+          <path d="M9 5l7 7-7 7" />
+        }
+        @case ('repeat') {
+          <path d="M4 12a8 8 0 1 0 2.4-5.7" />
+          <path d="M4 4v4h4" />
+        }
+        @case ('flip') {
+          <path d="M12 3v18" />
+          <path d="M8 7L3 12l5 5z" />
+          <path d="M16 7l5 5-5 5z" />
+        }
+        @case ('close') {
+          <path d="M6 6l12 12" />
+          <path d="M18 6L6 18" />
+        }
+        @case ('edit') {
+          <path d="M4 20h4L19 9l-4-4L4 16z" />
+          <path d="M13.5 6.5l4 4" />
+        }
+        @case ('plus') {
+          <path d="M12 5v14" />
+          <path d="M5 12h14" />
+        }
+        @case ('check') {
+          <path d="M5 12.5l4.5 4.5L19 7" />
+        }
+        @case ('info') {
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v5" />
+          <path d="M12 8h.01" />
+        }
+        @case ('stop') {
+          <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" />
+        }
+        @case ('refresh') {
+          <path d="M20 12a8 8 0 1 1-2.4-5.7" />
+          <path d="M20 4v4h-4" />
+        }
+        @case ('chevron-down') {
+          <path d="M6 9l6 6 6-6" />
+        }
+        @case ('sparkle') {
+          <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />
+          <path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z" />
+        }
+        @case ('record') {
+          <circle cx="12" cy="12" r="7" fill="currentColor" />
+        }
+      }
+    </svg>
+  `,
+})
+export class Icon {
+  readonly name = input.required<IconName>();
+  readonly size = input(24);
+}
