@@ -1,0 +1,148 @@
+.camera {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  max-height: 62dvh;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #11131a;
+  box-shadow: var(--shadow);
+}
+
+.camera__mirror {
+  position: absolute;
+  inset: 0;
+}
+
+.camera__mirror--on {
+  transform: scaleX(-1);
+}
+
+.camera__video,
+.camera__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera__start {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  border: 0;
+  background:
+    radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--accent) 30%, #11131a) 0%, #11131a 70%);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.camera__start-icon {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.camera__start small {
+  font-weight: 600;
+  opacity: 0.75;
+  font-size: 0.85rem;
+  max-width: 30ch;
+  text-align: center;
+}
+
+.camera__message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  color: #fff;
+  font-weight: 700;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 4px solid rgb(255 255 255 / 0.25);
+  border-top-color: #fff;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.camera__top {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.camera__buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.camera__overlay {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.hand-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.hand-indicator::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #9aa3b2;
+}
+
+.hand-indicator--on::before {
+  background: #3ee08f;
+}
+
+/* Seña detectada encima del video */

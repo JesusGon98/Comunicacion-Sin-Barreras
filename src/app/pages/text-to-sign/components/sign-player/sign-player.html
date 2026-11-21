@@ -1,0 +1,180 @@
+<div class="player">
+  <div class="player__caption" aria-live="polite">
+    <span class="player__word">{{ caption() || ' ' }}</span>
+  </div>
+
+  <div class="player__stage">
+    <!-- De dónde sale la seña que se ve (honestidad: las del paquete pueden no estar revisadas) -->
+    @if (origin(); as o) {
+      <span class="badge player__origin" [class.badge--warn]="o.warn" [class.badge--accent]="!o.warn">{{
+        o.text
+      }}</span>
+    }
+
+    @if (use3d()) {
+      <canvas
+        #c3d
+        class="player__canvas player__canvas--3d"
+        role="img"
+        [attr.aria-label]="caption() ? 'Seña: ' + caption() + '. Desliza para girar la mano.' : 'Espacio'"
+      ></canvas>
+    } @else {
+      <canvas
+        #c2d
+        class="player__canvas"
+        role="img"
+        [attr.aria-label]="caption() ? 'Seña: ' + caption() : 'Espacio'"
+      ></canvas>
+    }
+
+    @if (use3d() && rotated() && !currentMedia()) {
+      <button type="button" class="btn btn--sm btn--outline player__reset" (click)="hand?.resetView()">
+        <app-icon name="refresh" [size]="16" />
+        De frente
+      </button>
+    }
+
+    @if (currentMedia(); as m) {
+      @if (m.type === 'image') {
+        <img class="player__media" [src]="m.url" [alt]="'Seña ' + caption()" />
+      } @else {
+        <video
+          #vid
+          class="player__media"
+          [src]="m.url"
+          autoplay
+          muted
+          playsinline
+          (ended)="onVideoEnded()"
+        ></video>
+      }
+    }
+
+    @if (missing(); as msg) {
+      <div class="player__missing">
+        <span class="player__missing-letter">{{ caption() }}</span>
+        <span>{{ msg }}</span>
+      </div>
+    }
+    @if (token().kind === 'space') {
+      <div class="player__space">(espacio)</div>
+    }
+  </div>
+
+  <div class="player__controls">
+    <button type="button" class="icon-btn" (click)="step(-1)" aria-label="Seña anterior">
+      <app-icon name="prev" />
+    </button>
+    <button
+      type="button"
+      class="icon-btn icon-btn--primary icon-btn--lg"
+      (click)="togglePlay()"
+      [attr.aria-label]="playing() ? 'Pausa' : 'Reproducir'"
+    >
+      <app-icon [name]="playing() ? 'pause' : 'play'" [size]="28" />
+    </button>
+    <button type="button" class="icon-btn" (click)="step(1)" aria-label="Seña siguiente">
+      <app-icon name="next" />
+    </button>
+    <button type="button" class="icon-btn" (click)="goTo(0, true)" aria-label="Repetir desde el inicio">
+      <app-icon name="repeat" />
+    </button>
+  </div>
+
+  <!-- Lista de pasos: el actual se resalta; se puede tocar para saltar -->
+  <ol class="steps" aria-label="Señas del texto">
+    @for (t of tokens(); track $index; let i = $index) {
+      @if (t.kind === 'space') {
+        <li class="steps__space" aria-hidden="true"></li>
+      } @else {
+        <li>
+          <button
+            type="button"
+            class="steps__item"
+            [class.steps__item--current]="i === index()"
+            [class.steps__item--missing]="!hasSign(t)"
+            (click)="goTo(i)"
+            [attr.aria-current]="i === index() ? 'step' : null"
+            [title]="hasSign(t) ? '' : 'Sin seña grabada'"
+          >
+            {{ textOf(t) }}
+          </button>
+        </li>
+      }
+    }
+  </ol>
+
+  <details class="fold" style="box-shadow: none">
+    <summary>
+      <app-icon name="sliders" [size]="20" />
+      Opciones de la mano
+      <app-icon class="fold__chev" name="chevron-down" [size]="20" />
+    </summary>
+    <div class="fold__body">
+      <div class="option-row">
+        <span class="option-row__label" id="lbl-velocidad">Velocidad</span>
+        <div class="segmented" role="group" aria-labelledby="lbl-velocidad">
+          @for (s of speeds; track s) {
+            <button
+              type="button"
+              class="segmented__opt"
+              [attr.aria-pressed]="speed() === s"
+              (click)="speed.set(s)"
+            >
+              {{ s === 1 ? 'Normal' : s + '×' }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="option-row">
+        <span class="option-row__label" id="lbl-mano">Mano</span>
+        <div class="segmented" role="group" aria-labelledby="lbl-mano">
+          <button type="button" class="segmented__opt" [attr.aria-pressed]="style() === '3d'" (click)="setStyle('3d')">
+            3D realista
+          </button>
+          <button
+            type="button"
+            class="segmented__opt"
+            [attr.aria-pressed]="style() === 'skeleton'"
+            (click)="setStyle('skeleton')"
+          >
+            Esqueleto
+          </button>
+        </div>
+      </div>
+      @if (error3d(); as e) {
+        <p class="muted small">{{ e }}</p>
+      }
+
+      @if (use3d()) {
+        <div class="option-row">
+          <span class="option-row__label" id="lbl-piel">Tono de piel</span>
+          <div class="skin-picker" role="radiogroup" aria-labelledby="lbl-piel">
+            @for (t of skinTones; track t.id) {
+              <button
+                type="button"
+                role="radio"
+                class="skin-picker__swatch"
+                [attr.aria-checked]="skin() === t.id"
+                [attr.aria-label]="t.name"
+                [title]="t.name"
+                [style.background]="t.color"
+                (click)="setSkin(t.id)"
+              ></button>
+            }
+          </div>
+        </div>
+      }
+
+      <label class="switch">
+        <input type="checkbox" [checked]="mirror()" (change)="mirror.set($any($event.target).checked)" />
+        Vista de espejo (para imitar la seña)
+      </label>
+
+      @if (use3d()) {
+        <p class="muted small">Desliza el dedo sobre la mano para verla de lado. Doble toque: vista de frente.</p>
+      }
+    </div>
+  </details>
+</div>

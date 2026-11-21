@@ -6,22 +6,22 @@ export const routes: Routes = [
   {
     path: '',
     title: 'Conversación · Sin Barreras',
-    loadComponent: () => import('./conversation/conversation').then((m) => m.ConversationPage),
+    loadComponent: () => import('./pages/conversation/conversation').then((m) => m.ConversationPage),
   },
   {
     path: 'texto-a-senas',
     title: 'Ver señas · Sin Barreras',
-    loadComponent: () => import('./text-to-sign/text-to-sign').then((m) => m.TextToSignPage),
+    loadComponent: () => import('./pages/text-to-sign/text-to-sign').then((m) => m.TextToSignPage),
   },
   {
     path: 'senas-a-texto',
     title: 'Cámara · Sin Barreras',
-    loadComponent: () => import('./sign-to-text/sign-to-text').then((m) => m.SignToTextPage),
+    loadComponent: () => import('./pages/sign-to-text/sign-to-text').then((m) => m.SignToTextPage),
   },
   {
     path: 'ajustes',
     title: 'Ajustes · Sin Barreras',
-    loadComponent: () => import('./settings/settings').then((m) => m.SettingsPage),
+    loadComponent: () => import('./pages/settings/settings').then((m) => m.SettingsPage),
   },
   { path: '**', redirectTo: '' },
 ];

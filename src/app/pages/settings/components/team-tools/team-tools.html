@@ -1,0 +1,169 @@
+@if (!data()) {
+  <p class="muted">Cargando señas…</p>
+} @else {
+  <section class="card" aria-labelledby="titulo-equipo" style="border-style: dashed">
+    <div class="card__head">
+      <span class="card__icon"><app-icon name="sliders" [size]="20" /></span>
+      <h2 id="titulo-equipo">Herramientas del equipo: generar paquete</h2>
+    </div>
+    <p class="muted small">
+      Crea una nueva versión del paquete oficial con las señas elegidas. Solo para el equipo que revisa las señas.
+    </p>
+
+    <div class="team-grid">
+      <div>
+        <label class="label" for="pkg-version">Versión</label>
+        <input
+          id="pkg-version"
+          class="input"
+          type="number"
+          min="1"
+          [value]="version()"
+          (input)="version.set(+$any($event.target).value); built.set(null)"
+        />
+      </div>
+      <div>
+        <label class="label" for="pkg-fecha">Fecha</label>
+        <input
+          id="pkg-fecha"
+          class="input"
+          type="date"
+          [value]="fecha()"
+          (input)="fecha.set($any($event.target).value)"
+        />
+      </div>
+      <div>
+        <label class="label" for="pkg-origen">Origen de los datos</label>
+        <input
+          id="pkg-origen"
+          class="input"
+          [value]="origen()"
+          [placeholder]="suggestedOrigin()"
+          (input)="origen.set($any($event.target).value)"
+        />
+      </div>
+    </div>
+    @if (version() <= currentVersion()) {
+      <div class="banner banner--warning">
+        <app-icon name="info" />
+        <p class="banner__text">
+          La versión debe ser mayor que la actual (v{{ currentVersion() }}); si no, las apps no la descargarán.
+        </p>
+      </div>
+    }
+    <div>
+      <label class="label" for="pkg-notas">Notas (se muestran en el aviso de actualización)</label>
+      <input
+        id="pkg-notas"
+        class="input"
+        [value]="notas()"
+        placeholder="Por ejemplo: Se agregaron 20 palabras"
+        (input)="notas.set($any($event.target).value)"
+      />
+    </div>
+
+    <label class="switch">
+      <input
+        type="checkbox"
+        [checked]="useOfficial()"
+        (change)="useOfficial.set($any($event.target).checked); built.set(null)"
+      />
+      Incluir también los ejemplos del paquete actual
+    </label>
+
+    <div class="row">
+      <button type="button" class="btn btn--sm btn--outline" (click)="selectAll()">Elegir todas</button>
+      <button type="button" class="btn btn--sm btn--outline" (click)="clearAll()">
+        Quitar todas
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="team-table">
+        <thead>
+          <tr>
+            <th>Incluir</th>
+            <th>Seña</th>
+            <th>Aquí</th>
+            <th>Paquete</th>
+            <th>Revisada</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rows(); track r.label) {
+            <tr [class.team-table__off]="!included().has(r.label)">
+              <td>
+                <input
+                  type="checkbox"
+                  [attr.aria-label]="'Incluir ' + r.label"
+                  [checked]="included().has(r.label)"
+                  (change)="toggle(included, r.label)"
+                />
+              </td>
+              <td>
+                <strong>{{ r.label }}</strong>
+              </td>
+              <td>{{ r.personal || '—' }}</td>
+              <td>
+                @if (useOfficial()) {
+                  {{ r.official || '—' }}
+                } @else {
+                  <s>{{ r.official || '—' }}</s>
+                }
+              </td>
+              <td>
+                <input
+                  type="checkbox"
+                  [attr.aria-label]="r.label + ' revisada por una persona que sabe LSM'"
+                  [checked]="reviewed().has(r.label)"
+                  (change)="toggle(reviewed, r.label)"
+                />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (error(); as e) {
+      <div class="banner banner--error">
+        <app-icon name="info" />
+        <p class="banner__text">{{ e }}</p>
+      </div>
+    }
+
+    <button type="button" class="btn btn--primary btn--lg" (click)="generate()" [disabled]="busy()">
+      {{ busy() ? 'Generando…' : '1. Generar ' + langId + '-senas-v' + version() + '.json' }}
+    </button>
+
+    @if (built(); as b) {
+      <div class="banner banner--ok" style="flex-direction: column; align-items: stretch">
+        <p>
+          ✓ Se descargó <strong>{{ b.fileName }}</strong> ({{ kb(b) }} KB, {{ b.signCount }} señas,
+          {{ b.exampleCount }} ejemplos).
+        </p>
+        <p class="small">
+          sha256: <code class="code">{{ b.sha256 }}</code>
+        </p>
+        <ol class="steps-list">
+          <li>Sube {{ b.fileName }} a la carpeta de Google Drive y compártelo como «Cualquier persona con el enlace».</li>
+          <li>Copia su ID (la parte larga del enlace: drive.google.com/file/d/<strong>ID</strong>/view) y pégalo aquí:</li>
+        </ol>
+        <input
+          class="input"
+          [value]="driveId()"
+          (input)="driveId.set($any($event.target).value)"
+          placeholder="ID del paquete en Google Drive"
+          aria-label="ID del paquete en Google Drive"
+        />
+        <button type="button" class="btn btn--primary" (click)="downloadVersion()">
+          2. Descargar {{ langId }}-version.json
+        </button>
+        <p class="muted small">
+          3. En Drive, reemplaza el {{ langId }}-version.json anterior con este (usa «Administrar versiones › Subir
+          nueva versión» para que conserve su mismo ID). Las apps lo verán la próxima vez que se abran con internet.
+        </p>
+      </div>
+    }
+  </section>
+}

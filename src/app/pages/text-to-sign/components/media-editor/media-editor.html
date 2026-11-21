@@ -1,0 +1,50 @@
+<details class="fold">
+  <summary>
+    <app-icon name="camera" [size]="20" />
+    Foto o video propio de «{{ label() }}»
+    @if (current()) {
+      <span class="badge badge--ok">Tiene {{ current()!.type === 'video' ? 'video' : 'foto' }}</span>
+    }
+    <app-icon class="fold__chev" name="chevron-down" [size]="20" />
+  </summary>
+  <div class="fold__body">
+    <p class="muted">
+      @if (current(); as c) {
+        Esta seña tiene {{ c.type === 'video' ? 'un video' : 'una foto' }} propio.
+      } @else {
+        Graba tu propia foto o video de esta seña para mostrarlo en vez de la mano animada.
+      }
+    </p>
+    <div class="row">
+      <button type="button" class="btn btn--soft" (click)="capturing.set(true)">
+        <app-icon name="camera" [size]="20" />
+        Usar la cámara
+      </button>
+      <label class="btn btn--outline">
+        <app-icon name="upload" [size]="20" />
+        Subir archivo
+        <input type="file" accept="image/*,video/*" class="sr-only" (change)="onFile($event)" />
+      </label>
+      @if (current()) {
+        <button type="button" class="btn btn--danger" (click)="remove()">
+          <app-icon name="trash" [size]="20" />
+          Quitar
+        </button>
+      }
+    </div>
+    @if (error(); as e) {
+      <div class="banner banner--error">
+        <app-icon name="info" />
+        <p class="banner__text">{{ e }}</p>
+      </div>
+    }
+    <p class="muted small">
+      Usa solo fotos y videos grabados por ti o por personas que te dieron permiso. No copies imágenes de
+      diccionarios de internet.
+    </p>
+  </div>
+</details>
+
+@if (capturing()) {
+  <app-capture-dialog [label]="label()" (captured)="save($event)" (close)="capturing.set(false)" />
+}

@@ -1,0 +1,62 @@
+/* =========================================================
+   Ajustes
+   ========================================================= */
+
+.facts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px 16px;
+  margin: 0;
+}
+
+.facts dt {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 10px;
+}
+
+.facts dd {
+  margin: 0;
+}
+
+@media (min-width: 600px) {
+  .facts {
+    grid-template-columns: max-content 1fr;
+  }
+
+  .facts dt {
+    margin-top: 0;
+    padding: 8px 0;
+  }
+
+  .facts dd {
+    padding: 8px 0;
+  }
+}
+
+.facts__plain {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 800;
+  cursor: default;
+}
+
+.settings-grid {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 1000px) {
+  .settings-grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  .settings-grid > .span-2 {
+    grid-column: 1 / -1;
+  }
+}

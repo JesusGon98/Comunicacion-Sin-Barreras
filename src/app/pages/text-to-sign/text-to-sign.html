@@ -1,0 +1,75 @@
+<section class="page page--signs" aria-labelledby="titulo-texto-senas">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 id="titulo-texto-senas">Ver señas</h1>
+      <p class="page-head__intro">
+        Escribe una palabra o frase y la app la muestra en señas. Si no conoce una palabra, la deletrea.
+      </p>
+    </div>
+  </header>
+
+  @if (loaded() && animations().size === 0 && media().size === 0) {
+    <div class="banner banner--warning">
+      <app-icon name="info" />
+      <p class="banner__text">
+        Todavía no hay señas grabadas. Se graban en
+        <a routerLink="/senas-a-texto">Cámara › Entrenar</a> y aquí se muestran con una mano animada.
+      </p>
+    </div>
+  }
+
+  <form class="card" (submit)="submit($event)">
+    <label for="texto-senas" class="sr-only">Texto para mostrar en señas</label>
+    <div class="field-action">
+      <input
+        id="texto-senas"
+        class="input"
+        [value]="input()"
+        (input)="input.set($any($event.target).value)"
+        placeholder="Por ejemplo: hola"
+        autocomplete="off"
+        enterkeyhint="go"
+      />
+      <button type="submit" class="btn btn--primary" [disabled]="!input().trim()">
+        <app-icon name="play" [size]="18" />
+        <span>Mostrar</span>
+      </button>
+    </div>
+    <div class="stats">
+      <span class="badge">{{ letterCount() }} de {{ alphabetSize }} letras</span>
+      <span class="badge">{{ wordLabels().length }} {{ wordLabels().length === 1 ? 'palabra' : 'palabras' }}</span>
+      @if (media().size > 0) {
+        <span class="badge badge--accent">{{ media().size }} fotos/videos tuyos</span>
+      }
+    </div>
+    @if (media().size > 0) {
+      <label class="switch">
+        <input type="checkbox" [checked]="useMedia()" (change)="useMedia.set($any($event.target).checked)" />
+        Usar mis fotos y videos cuando existan
+      </label>
+    }
+  </form>
+
+  @if (tokens().length > 0) {
+    <section class="card" aria-label="Reproductor de señas">
+      <app-sign-player
+        [tokens]="tokens()"
+        [animations]="animations()"
+        [packageVersion]="packageVersion()"
+        [media]="media()"
+        [useMedia]="useMedia()"
+        (currentChange)="current.set($event)"
+      />
+    </section>
+    @if (currentLabel(); as l) {
+      <app-media-editor [label]="l" [current]="media().get(l)" (changed)="loadMedia()" />
+    }
+  } @else {
+    <div class="card" style="align-items: center; text-align: center; padding: 36px 18px">
+      <span class="card__icon" style="width: 64px; height: 64px; border-radius: 20px">
+        <app-icon name="hand" [size]="34" />
+      </span>
+      <p class="muted">Escribe arriba y toca <strong>Mostrar</strong> para ver la mano.</p>
+    </div>
+  }
+</section>

@@ -47,11 +47,7 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public",
-                "ignore": [
-                  "signs/taqueria-express-assets-separados/**",
-                  "signs/*.zip"
-                ]
+                "input": "public"
               }
             ],
             "styles": [

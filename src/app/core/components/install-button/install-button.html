@@ -1,0 +1,6 @@
+@if (installer.canInstall()) {
+  <button type="button" class="btn btn--soft" [class.btn--block]="block()" (click)="installer.install()">
+    <app-icon name="download" [size]="20" />
+    Instalar app
+  </button>
+}

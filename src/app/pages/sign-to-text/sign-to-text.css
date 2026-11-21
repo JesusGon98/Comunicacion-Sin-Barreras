@@ -1,0 +1,26 @@
+/* =========================================================
+   Modo Señas → Texto (cámara)
+   ========================================================= */
+
+.cam-layout {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+.cam-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 1000px) {
+  .cam-layout {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+
+  .cam-layout__main {
+    position: sticky;
+    top: 24px;
+  }
+}

@@ -1,0 +1,10 @@
+.phrases-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.phrases-edit__row {
+  display: flex;
+  gap: 8px;
+}

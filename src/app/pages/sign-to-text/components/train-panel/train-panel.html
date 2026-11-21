@@ -1,0 +1,219 @@
+<!-- Encima del video: cuenta regresiva y avance, en grande, para no tener que mirar a otro lado -->
+<ng-template #overlay>
+  @let p = phase();
+  @if (p.kind !== 'idle') {
+    <div class="rec-overlay" [class.rec-overlay--now]="p.kind === 'moving'" role="status">
+      @switch (p.kind) {
+        @case ('countdown') {
+          <span class="rec-overlay__small">
+            {{ withMotion() && countdownNext() > 1 ? 'Repetición ' + countdownNext() : 'Prepárate para «' + name() + '»' }}
+          </span>
+          <span class="rec-overlay__big">{{ countdownSeconds() }}</span>
+        }
+        @case ('recording') {
+          <span class="rec-overlay__small">Grabando «{{ name() }}»… mantén la mano quieta</span>
+          <span class="rec-overlay__big">{{ progress() }} / {{ count() }}</span>
+        }
+        @case ('moving') {
+          <span class="rec-overlay__big">¡Ahora!</span>
+          <span class="rec-overlay__small">Haz la seña · listas {{ progress() }} / {{ count() }}</span>
+        }
+      }
+      @if (warning()) {
+        <span class="rec-overlay__warn">{{ warning() }}</span>
+      }
+    </div>
+  }
+</ng-template>
+
+<!-- Justo debajo del video: el botón para grabar (o cancelar y el avance) -->
+<ng-template #footer>
+  @if (!busy()) {
+    <button
+      type="button"
+      class="btn btn--primary btn--lg btn--block"
+      (click)="record()"
+      [disabled]="!cameraOn() || !name()"
+    >
+      <app-icon name="record" [size]="18" />
+      @if (!cameraOn()) {
+        Enciende la cámara para grabar
+      } @else if (name()) {
+        Grabar {{ count() }} {{ withMotion() ? 'repeticiones' : 'ejemplos' }} de «{{ name() }}»
+      } @else {
+        Elige abajo una letra o escribe una seña
+      }
+    </button>
+  } @else {
+    <div class="row" style="flex-wrap: nowrap">
+      <progress class="progress" [value]="progress()" [max]="count()" aria-label="Avance de la grabación"></progress>
+      <button type="button" class="btn btn--outline" (click)="cancel()">Cancelar</button>
+    </div>
+  }
+</ng-template>
+
+<div class="stack" style="gap: 16px">
+  <section class="card" aria-labelledby="titulo-grabar">
+    <div class="card__head">
+      <span class="card__icon"><app-icon name="record" [size]="18" /></span>
+      <h2 id="titulo-grabar">Grabar una seña</h2>
+    </div>
+
+    <div>
+      <label for="nombre-sena" class="label">Nombre de la seña (letra o palabra)</label>
+      <input
+        id="nombre-sena"
+        class="input"
+        placeholder="Por ejemplo «A» u «hola»"
+        [value]="label()"
+        (input)="label.set($any($event.target).value)"
+        [disabled]="busy()"
+        autocomplete="off"
+      />
+    </div>
+
+    <div>
+      <p class="label">O elige una letra</p>
+      <div class="letters">
+        @for (letter of alphabet; track letter) {
+          @let n = signs().get(letter)?.count ?? 0;
+          @let dyn = dynamicLetters.includes(letter);
+          <button
+            type="button"
+            class="letter"
+            [class.letter--selected]="name() === letter"
+            [class.letter--done]="n >= minRecommended"
+            (click)="label.set(letter)"
+            [disabled]="busy()"
+            [title]="n + ' ejemplos' + (dyn ? ' (lleva movimiento)' : '')"
+            [attr.aria-label]="letter + ', ' + n + ' ejemplos' + (dyn ? ', lleva movimiento' : '')"
+          >
+            <span>{{ letter }}</span>
+            <small>{{ dyn ? '↻ ' : '' }}{{ n }}</small>
+          </button>
+        }
+      </div>
+      <p class="muted small" style="margin-top: 8px">
+        El número es cuántos ejemplos tuyos tiene cada letra. ↻ = lleva movimiento. Verde = suficientes.
+      </p>
+    </div>
+
+    @if (name() && !isLetter()) {
+      <label class="switch">
+        <input
+          type="checkbox"
+          [checked]="wordMotion()"
+          (change)="wordMotion.set($any($event.target).checked)"
+          [disabled]="busy()"
+        />
+        Esta seña lleva movimiento
+      </label>
+    }
+
+    @if (withMotion()) {
+      <div class="banner banner--accent">
+        <app-icon name="info" />
+        <p class="banner__text">
+          <strong>Seña con movimiento.</strong> Se grabarán varias repeticiones. En cada una, espera a que diga
+          <strong>«¡Ahora!»</strong> y haz la seña completa.
+        </p>
+      </div>
+    }
+
+    <div class="option-row">
+      <span class="option-row__label" id="lbl-cantidad">{{ withMotion() ? 'Repeticiones' : 'Ejemplos' }}</span>
+      <div class="segmented" role="group" aria-labelledby="lbl-cantidad">
+        @for (n of targets(); track n) {
+          <button
+            type="button"
+            class="segmented__opt"
+            [attr.aria-pressed]="count() === n"
+            (click)="target.set(n)"
+            [disabled]="busy()"
+          >
+            {{ n }}
+          </button>
+        }
+      </div>
+    </div>
+    @if (withMotion()) {
+      <div class="option-row">
+        <span class="option-row__label" id="lbl-duracion">Segundos por repetición</span>
+        <div class="segmented" role="group" aria-labelledby="lbl-duracion">
+          @for (s of durations; track s) {
+            <button
+              type="button"
+              class="segmented__opt"
+              [attr.aria-pressed]="seconds() === s"
+              (click)="seconds.set(s)"
+              [disabled]="busy()"
+            >
+              {{ s }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    @if (packageInfo(); as p) {
+      <p class="muted small">
+        La app ya incluye el <strong>paquete oficial v{{ p.version }}</strong> con el alfabeto{{
+          p.origen === 'sintetico' ? ' (datos sintéticos, todavía sin revisar)' : ''
+        }}. Lo que grabes aquí son tus <strong>señas personales</strong>: se suman al paquete y ayudan a que
+        reconozca mejor tu mano.
+      </p>
+    }
+  </section>
+
+  <details class="fold">
+    <summary>
+      <app-icon name="sparkle" [size]="20" />
+      Consejos para que aprenda mejor
+      <app-icon class="fold__chev" name="chevron-down" [size]="20" />
+    </summary>
+    <div class="fold__body tips">
+      <ul>
+        <li>Señas quietas: mantén la mano quieta mientras se graba.</li>
+        <li>Señas con movimiento: haz el movimiento completo, a velocidad normal, en cada repetición.</li>
+        <li>Mueve un poco la mano entre grabaciones: más cerca, más lejos, un poco girada.</li>
+        <li>Graba la misma seña con varias personas y con buena luz.</li>
+        <li>Graba al menos {{ minRecommended }} ejemplos por seña.</li>
+      </ul>
+    </div>
+  </details>
+
+  <section class="card" aria-labelledby="titulo-entrenadas">
+    <div class="card__head">
+      <h2 id="titulo-entrenadas">Mis señas entrenadas</h2>
+      <span class="badge">{{ trained().length }}</span>
+    </div>
+    @if (trained().length === 0) {
+      <p class="muted">Todavía no hay señas entrenadas.</p>
+    } @else {
+      <ul class="trained">
+        @for (item of trained(); track item[0]) {
+          <li class="trained__item">
+            <span class="trained__label">{{ item[0] }}</span>
+            <span class="trained__info">
+              {{ item[1].count }} ejemplos{{ item[1].dynamic ? ' · con movimiento' : '' }}
+              @if (item[1].count < minRecommended) {
+                <br /><span class="badge badge--warn">Faltan {{ minRecommended - item[1].count }}</span>
+              }
+            </span>
+            <button
+              type="button"
+              class="icon-btn"
+              (click)="remove(item[0])"
+              [attr.aria-label]="'Borrar los ejemplos de ' + item[0]"
+              title="Borrar"
+            >
+              <app-icon name="trash" [size]="20" />
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <app-share-panel (imported)="refreshCounts()" />
+</div>

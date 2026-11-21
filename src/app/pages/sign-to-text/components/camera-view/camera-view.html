@@ -1,0 +1,66 @@
+<div class="camera">
+  <div class="camera__mirror" [class.camera__mirror--on]="facing() === 'user'">
+    <video #video class="camera__video" playsinline muted></video>
+    <canvas #canvas class="camera__canvas"></canvas>
+  </div>
+
+  @switch (status()) {
+    @case ('off') {
+      <!-- Cámara apagada: todo el recuadro es un botón grande para encenderla -->
+      <button type="button" class="camera__start" (click)="toggle.emit()">
+        <span class="camera__start-icon"><app-icon name="camera" [size]="38" /></span>
+        Encender cámara
+        <small>Las imágenes nunca salen de tu dispositivo.</small>
+      </button>
+    }
+    @case ('loading') {
+      <div class="camera__message">
+        <span class="spinner" aria-hidden="true"></span>
+        <p>Preparando la cámara y el detector de manos…<br /><small>La primera vez tarda unos segundos.</small></p>
+      </div>
+    }
+    @case ('error') {
+      <div class="camera__message">
+        <p>{{ error() }}</p>
+        <button type="button" class="btn btn--outline" style="color: #fff" (click)="toggle.emit()">Cerrar</button>
+      </div>
+    }
+  }
+
+  <div class="camera__overlay"><ng-content /></div>
+
+  <!-- Controles encima del video: indicador de mano, cambiar cámara y apagar -->
+  @if (status() === 'running' || status() === 'loading') {
+    <div class="camera__top">
+      @if (status() === 'running') {
+        <span class="hand-indicator" [class.hand-indicator--on]="handVisible()" role="status">
+          {{ handVisible() ? 'Mano detectada' : 'Sin mano' }}
+        </span>
+      } @else {
+        <span></span>
+      }
+      <div class="camera__buttons">
+        @if (status() === 'running' && cameraCount() > 1) {
+          <button
+            type="button"
+            class="icon-btn icon-btn--glass"
+            (click)="facing.set(facing() === 'user' ? 'environment' : 'user')"
+            aria-label="Cambiar cámara"
+            title="Cambiar cámara"
+          >
+            <app-icon name="switch-camera" />
+          </button>
+        }
+        <button
+          type="button"
+          class="icon-btn icon-btn--glass"
+          (click)="toggle.emit()"
+          aria-label="Apagar cámara"
+          title="Apagar cámara"
+        >
+          <app-icon name="power" />
+        </button>
+      </div>
+    </div>
+  }
+</div>

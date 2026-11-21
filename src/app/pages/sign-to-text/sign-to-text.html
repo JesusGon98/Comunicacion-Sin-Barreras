@@ -1,0 +1,47 @@
+<section class="page page--camera" aria-labelledby="titulo-senas-texto">
+  <header class="page-head">
+    <div class="page-head__text">
+      <h1 id="titulo-senas-texto">
+        Cámara <span class="badge badge--accent" style="vertical-align: middle">Experimental</span>
+      </h1>
+    </div>
+    <div class="segmented" role="tablist" aria-label="Opciones">
+      <button
+        type="button"
+        role="tab"
+        class="segmented__opt"
+        [attr.aria-selected]="tab() === 'reconocer'"
+        (click)="tab.set('reconocer')"
+      >
+        Reconocer
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="segmented__opt"
+        [attr.aria-selected]="tab() === 'entrenar'"
+        (click)="tab.set('entrenar')"
+      >
+        Entrenar
+      </button>
+    </div>
+  </header>
+
+  <div class="cam-layout">
+    <div class="cam-layout__main">
+      <app-camera-view [active]="cameraOn()" [frame]="frame" (toggle)="cameraOn.set(!cameraOn())">
+        <ng-container [ngTemplateOutlet]="overlayTpl()" />
+      </app-camera-view>
+      <ng-container [ngTemplateOutlet]="footerTpl()" />
+    </div>
+
+    <div role="tabpanel">
+      <!-- Al cambiar de pestaña el panel se crea de nuevo (así toma las señas nuevas) -->
+      @if (tab() === 'reconocer') {
+        <app-recognize-panel [frame]="frame" [cameraOn]="cameraOn()" (goTrain)="tab.set('entrenar')" />
+      } @else {
+        <app-train-panel [frame]="frame" [cameraOn]="cameraOn()" />
+      }
+    </div>
+  </div>
+</section>

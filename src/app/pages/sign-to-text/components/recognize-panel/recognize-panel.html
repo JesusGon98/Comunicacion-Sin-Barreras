@@ -1,0 +1,126 @@
+<!-- Encima del video: la seña detectada, grande, sin tener que mirar a otro lado -->
+<ng-template #overlay>
+  @if (cameraOn() && ready()) {
+    @let r = reading();
+    <div [class]="'detected detected--' + r.state" aria-live="polite">
+      @if (r.state === 'sure') {
+        <div class="detected__row">
+          <span class="detected__label">{{ r.label }}</span>
+          <span class="detected__confidence">{{ percent() }}%</span>
+        </div>
+      } @else {
+        <span class="detected__message">
+          @switch (r.state) {
+            @case ('no-hand') {
+              Pon tu mano frente a la cámara
+            }
+            @case ('moving') {
+              Movimiento…
+            }
+            @default {
+              No estoy seguro
+            }
+          }
+        </span>
+      }
+      @if (r.state === 'sure' || r.state === 'unsure') {
+        <div class="confidence" aria-hidden="true">
+          <div class="confidence__bar" [style.width.%]="percent()" [attr.data-ok]="r.confidence >= threshold()"></div>
+          <div class="confidence__threshold" [style.left.%]="threshold() * 100"></div>
+        </div>
+      }
+    </div>
+  }
+</ng-template>
+
+<!-- Justo debajo del video: el texto que se va armando y sus botones -->
+<ng-template #footer>
+  @if (!ready()) {
+    <p class="muted">Cargando señas entrenadas…</p>
+  } @else if (empty()) {
+    <div class="card" style="align-items: flex-start">
+      <h2>Primero hay que entrenar</h2>
+      <p class="muted">Todavía no hay señas entrenadas. Graba algunos ejemplos para que la app pueda reconocerlas.</p>
+      <button type="button" class="btn btn--primary" (click)="goTrain.emit()">Ir a entrenar</button>
+    </div>
+  } @else {
+    <section class="card" style="padding: 12px; gap: 10px" aria-labelledby="titulo-texto">
+      <h2 id="titulo-texto" class="sr-only">Texto reconocido</h2>
+      <textarea
+        class="input recognized"
+        rows="2"
+        [value]="text()"
+        (input)="text.set($any($event.target).value)"
+        placeholder="Aquí se va armando el texto…"
+        aria-labelledby="titulo-texto"
+      ></textarea>
+      <div class="toolbar">
+        <button type="button" class="tool-btn" (click)="text.set(text() + ' ')">
+          <app-icon name="space" />
+          Espacio
+        </button>
+        <button type="button" class="tool-btn" (click)="deleteLast()" [disabled]="!text()">
+          <app-icon name="backspace" />
+          Borrar
+        </button>
+        <button type="button" class="tool-btn" (click)="text.set('')" [disabled]="!text()">
+          <app-icon name="trash" />
+          Todo
+        </button>
+        <button type="button" class="tool-btn" (click)="showText.set(text().trim())" [disabled]="!text().trim()">
+          <app-icon name="expand" />
+          Mostrar
+        </button>
+        <button type="button" class="tool-btn tool-btn--primary" (click)="sayAloud()" [disabled]="!text().trim()">
+          <app-icon name="speaker" />
+          {{ synthesis ? 'Decir' : 'Guardar' }}
+        </button>
+      </div>
+    </section>
+  }
+</ng-template>
+
+<!-- Lo demás (ajustes e información) va aparte: se usa poco -->
+@if (ready() && !empty()) {
+  <details class="fold">
+    <summary>
+      <app-icon name="sliders" [size]="20" />
+      Ajustes del reconocimiento
+      <app-icon class="fold__chev" name="chevron-down" [size]="20" />
+    </summary>
+    <div class="fold__body">
+      <p class="muted small">
+        Sostén una seña quieta un segundo para agregarla al texto; las señas con movimiento se agregan al terminar
+        el movimiento. Conozco {{ labelCount() }} {{ labelCount() === 1 ? 'seña' : 'señas' }}.
+      </p>
+      @if (packageInfo(); as p) {
+        <p class="muted small">
+          Incluye el paquete oficial v{{ p.version }}{{
+            p.origen === 'sintetico' ? ' (datos sintéticos, generados por computadora)' : ''
+          }}{{ unreviewed() ? ', que todavía no revisa una persona que sepa LSM' : '' }}. Si no reconoce bien tu
+          mano, graba tus propios ejemplos en Entrenar.
+        </p>
+      }
+      <div>
+        <label for="umbral" class="label">Confianza mínima: {{ thresholdPercent() }}%</label>
+        <input
+          id="umbral"
+          type="range"
+          class="range"
+          min="0.4"
+          max="0.95"
+          step="0.05"
+          [value]="threshold()"
+          (input)="threshold.set(+$any($event.target).value)"
+        />
+        <p class="muted small">
+          Más alto = se equivoca menos, pero reconoce menos señas. Más bajo = reconoce más, pero se equivoca más.
+        </p>
+      </div>
+    </div>
+  </details>
+}
+
+@if (showText(); as t) {
+  <app-show-overlay [text]="t" (close)="showText.set(null)" />
+}

@@ -1,0 +1,49 @@
+<div class="overlay" role="dialog" aria-modal="true" aria-label="Texto en grande">
+  @if (live()?.listening) {
+    <p class="overlay__status" role="status">
+      <span class="pulse" aria-hidden="true"></span>
+      {{ live()!.status }}
+    </p>
+  }
+
+  <p
+    class="overlay__text"
+    [class.overlay__text--flipped]="flipped()"
+    [class.overlay__text--interim]="dimmed()"
+    [style.font-size]="fontSize()"
+    [attr.aria-live]="live() ? 'polite' : null"
+  >
+    {{ shown() }}
+  </p>
+
+  <div class="overlay__bar">
+    @if (live(); as l) {
+      <button
+        type="button"
+        class="btn btn--lg"
+        [class.btn--rec]="l.listening"
+        [class.btn--primary]="!l.listening"
+        (click)="toggleMic.emit()"
+        [attr.aria-pressed]="l.listening"
+      >
+        <app-icon [name]="l.listening ? 'mic-off' : 'mic'" />
+        {{ l.listening ? 'Dejar de escuchar' : 'Escuchar' }}
+      </button>
+    }
+    <button type="button" class="btn btn--lg btn--outline" (click)="flipped.set(!flipped())">
+      <app-icon name="flip" />
+      Voltear
+    </button>
+    <button
+      type="button"
+      class="btn btn--lg"
+      [class.btn--primary]="!live()"
+      [class.btn--outline]="!!live()"
+      (click)="close.emit()"
+      data-autofocus
+    >
+      <app-icon name="close" />
+      Cerrar
+    </button>
+  </div>
+</div>

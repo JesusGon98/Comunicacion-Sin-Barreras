@@ -1,0 +1,53 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  padding: calc(16px + env(safe-area-inset-top, 0px)) var(--gutter) calc(16px + var(--safe-bottom));
+  animation: fade 0.2s ease-out;
+}
+
+.overlay__status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.overlay__text {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  overflow: auto;
+  text-align: center;
+  font-weight: 800;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  transition: transform 0.3s;
+}
+
+.overlay__text--flipped {
+  transform: rotate(180deg);
+}
+
+.overlay__text--interim {
+  color: var(--text-muted);
+}
+
+.overlay__bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.overlay__bar .btn {
+  flex: 1 1 140px;
+  max-width: 260px;
+}

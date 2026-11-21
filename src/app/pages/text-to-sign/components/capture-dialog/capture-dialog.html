@@ -1,0 +1,45 @@
+<div class="dialog-backdrop">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="titulo-captura">
+    <div class="card__head">
+      <h2 id="titulo-captura">Foto o video de «{{ label() }}»</h2>
+      <button type="button" class="icon-btn" aria-label="Cerrar" (click)="close.emit()">
+        <app-icon name="close" />
+      </button>
+    </div>
+
+    @if (error(); as e) {
+      <div class="banner banner--error">
+        <app-icon name="info" />
+        <p class="banner__text">{{ e }}</p>
+      </div>
+    } @else {
+      <div class="capture">
+        <video #video playsinline muted></video>
+        @if (recording()) {
+          <div class="capture__rec" role="status">
+            <span class="pulse" aria-hidden="true"></span>
+            Grabando {{ seconds() }} / {{ maxSeconds }} s
+          </div>
+        }
+      </div>
+    }
+
+    <div class="row">
+      @if (!recording()) {
+        <button type="button" class="btn btn--primary spacer" (click)="takePhoto()" [disabled]="!!error()">
+          <app-icon name="camera" [size]="20" />
+          Tomar foto
+        </button>
+        <button type="button" class="btn btn--soft spacer" (click)="startVideo()" [disabled]="!!error() || !canRecord">
+          <app-icon name="record" [size]="18" />
+          Grabar video
+        </button>
+      } @else {
+        <button type="button" class="btn btn--rec btn--block" (click)="recorder?.stop()">
+          <app-icon name="stop" [size]="18" />
+          Detener video
+        </button>
+      }
+    </div>
+  </div>
+</div>

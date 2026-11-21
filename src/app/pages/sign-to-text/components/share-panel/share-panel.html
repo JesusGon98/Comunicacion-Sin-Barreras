@@ -1,0 +1,40 @@
+<details class="fold">
+  <summary>
+    <app-icon name="upload" [size]="20" />
+    Compartir mis señas
+    <app-icon class="fold__chev" name="chevron-down" [size]="20" />
+  </summary>
+  <div class="fold__body">
+    <p class="muted">
+      Guarda tus señas en un archivo para pasarlas a otro dispositivo o compartirlas. Al importar, las señas del
+      archivo se <strong>suman</strong> a las que ya tienes.
+    </p>
+    <label class="switch">
+      <input type="checkbox" [checked]="includeMedia()" (change)="includeMedia.set($any($event.target).checked)" />
+      Incluir mis fotos y videos (el archivo será más grande)
+    </label>
+    <div class="row">
+      <button type="button" class="btn btn--soft" (click)="doExport()" [disabled]="busy()">
+        <app-icon name="download" [size]="20" />
+        Exportar
+      </button>
+      <label class="btn btn--outline" [class.btn--disabled]="busy()">
+        <app-icon name="upload" [size]="20" />
+        Importar
+        <input
+          type="file"
+          accept=".json,application/json"
+          class="sr-only"
+          (change)="doImport($event)"
+          [disabled]="busy()"
+        />
+      </label>
+    </div>
+    @if (message(); as m) {
+      <div class="banner" [class.banner--ok]="m.ok" [class.banner--error]="!m.ok" role="status">
+        <app-icon [name]="m.ok ? 'check' : 'info'" />
+        <p class="banner__text">{{ m.text }}</p>
+      </div>
+    }
+  </div>
+</details>
