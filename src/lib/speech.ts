@@ -57,7 +57,32 @@ export function isSynthesisSupported(): boolean {
 
 // ---------- Reconocimiento de voz ----------
 
-export type RecognitionErrorCode = 'permiso' | 'sin-red' | 'sin-microfono' | 'otro';
+export type RecognitionErrorCode =
+  | 'permiso' // la persona (o el navegador) negó el micrófono
+  | 'politica' // el servidor bloquea el micrófono con la cabecera Permissions-Policy
+  | 'inseguro' // la página no está en https
+  | 'servicio' // el navegador no tiene servicio de reconocimiento de voz (Brave, Chromium, iPhone sin Siri…)
+  | 'sin-red'
+  | 'sin-microfono'
+  | 'otro';
+
+/**
+ * ¿La página tiene permitido usar el micrófono?
+ * Un servidor puede bloquearlo con la cabecera "Permissions-Policy: microphone=()"
+ * aunque la página esté en https. En ese caso el navegador ni siquiera pregunta.
+ */
+function microphoneAllowedByPolicy(): boolean {
+  const d = document as unknown as {
+    permissionsPolicy?: { allowsFeature(f: string): boolean };
+    featurePolicy?: { allowsFeature(f: string): boolean };
+  };
+  const policy = d.permissionsPolicy ?? d.featurePolicy;
+  try {
+    return policy ? policy.allowsFeature('microphone') : true;
+  } catch {
+    return true;
+  }
+}
 
 export interface RecognizerOptions {
   lang: string;
@@ -65,7 +90,8 @@ export interface RecognizerOptions {
   onInterim: (text: string) => void;
   /** Frase terminada. */
   onFinal: (text: string) => void;
-  onError: (code: RecognitionErrorCode) => void;
+  /** "detail" es el código original del navegador (sirve para diagnosticar). */
+  onError: (code: RecognitionErrorCode, detail?: string) => void;
   /** Avisa cuando empieza o deja de escuchar. */
   onListeningChange: (listening: boolean) => void;
 }
@@ -109,14 +135,21 @@ export function createRecognizer(opts: RecognizerOptions): Recognizer {
   };
 
   rec.onerror = (e) => {
+    console.warn('[voz] error del reconocimiento:', e.error);
     switch (e.error) {
       case 'no-speech':
       case 'aborted':
         return; // silencio o parada normal: no es un error real
       case 'not-allowed':
+        wanted = false;
+        // Distinguimos por qué: servidor que bloquea, página sin https o permiso negado
+        if (!window.isSecureContext) opts.onError('inseguro', e.error);
+        else if (!microphoneAllowedByPolicy()) opts.onError('politica', e.error);
+        else opts.onError('permiso', e.error);
+        return;
       case 'service-not-allowed':
         wanted = false;
-        opts.onError('permiso');
+        opts.onError('servicio', e.error);
         return;
       case 'network':
         wanted = false;
@@ -127,7 +160,7 @@ export function createRecognizer(opts: RecognizerOptions): Recognizer {
         opts.onError('sin-microfono');
         return;
       default:
-        opts.onError('otro');
+        opts.onError('otro', e.error);
     }
   };
 
@@ -152,6 +185,9 @@ export function createRecognizer(opts: RecognizerOptions): Recognizer {
 
   return {
     start() {
+      // Revisamos antes de empezar: así el mensaje explica la causa real
+      if (!window.isSecureContext) return opts.onError('inseguro');
+      if (!microphoneAllowedByPolicy()) return opts.onError('politica');
       wanted = true;
       if (!running) {
         try {

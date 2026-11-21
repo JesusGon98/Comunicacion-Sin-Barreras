@@ -23,8 +23,9 @@ import { Icon } from '../../../../shared/components/icon/icon';
 import { ShowOverlay } from '../../../../shared/components/show-overlay/show-overlay';
 import type { FrameBox } from '../camera-view/camera-view';
 
-const STABLE_FRAMES = 5; // la seña quieta debe repetirse ~0.3 s para mostrarla
-const HOLD_FRAMES = 15; // y sostenerse ~1 s para agregarla al texto
+// La seña quieta debe salir igual ~0.3 s seguidos (con la confianza mínima) para mostrarla
+// y escribirla. Ese pequeño margen evita escribir las posiciones de paso entre una letra y otra.
+const STABLE_FRAMES = 5;
 const STILL_FRAMES_TO_END = 4; // ~0.25 s quieta = terminó el movimiento
 const MAX_SEGMENT_FRAMES = 75; // un movimiento dura como máximo ~5 s
 const SHOW_DYNAMIC_MS = 1200; // tiempo que se muestra una seña con movimiento reconocida
@@ -206,7 +207,8 @@ export class RecognizePanel {
         }));
       }
 
-      if (candidate.frames === HOLD_FRAMES && this.lastAdded !== prediction.label) {
+      // En cuanto la seña se confirma, se escribe sola (una vez: para repetirla, cambia de seña o baja la mano)
+      if (candidate.frames === STABLE_FRAMES && this.lastAdded !== prediction.label) {
         this.lastAdded = prediction.label;
         this.addToText(prediction.label);
       }

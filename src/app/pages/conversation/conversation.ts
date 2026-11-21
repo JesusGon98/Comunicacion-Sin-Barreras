@@ -26,7 +26,12 @@ import { PhrasesEditor } from './components/phrases-editor/phrases-editor';
 // Mensajes de error que ve el usuario, en lenguaje sencillo.
 const ERROR_MESSAGES: Record<RecognitionErrorCode, string> = {
   permiso:
-    'No hay permiso para usar el micrófono. Actívalo en la configuración del navegador (el candado junto a la dirección).',
+    'No hay permiso para usar el micrófono. Actívalo en la configuración del navegador (el candado junto a la dirección) y recarga la página.',
+  politica:
+    'El servidor de esta página bloquea el micrófono (cabecera Permissions-Policy). Hay que permitirlo en la configuración del servidor: microphone=(self).',
+  inseguro: 'El micrófono solo funciona si la página se abre con https://.',
+  servicio:
+    'Este navegador no tiene servicio de reconocimiento de voz (pasa en Brave, en Chromium y en iPhone con Siri o Dictado desactivados). Prueba en Chrome o Edge, o activa Siri y Dictado.',
   'sin-red': 'El reconocimiento de voz necesita internet y no hay conexión. Puedes seguir usando el texto.',
   'sin-microfono': 'No se encontró ningún micrófono conectado.',
   otro: 'Hubo un problema con el reconocimiento de voz. Intenta de nuevo.',
@@ -125,8 +130,9 @@ export class ConversationPage {
         this.addEntry('oyente', text);
         vibrate(60); // aviso de que llegó texto nuevo
       },
-      onError: (code) => {
-        this.error.set(ERROR_MESSAGES[code]);
+      onError: (code, detail) => {
+        // En errores raros mostramos el código del navegador para poder diagnosticarlo
+        this.error.set(ERROR_MESSAGES[code] + (code === 'otro' && detail ? ` (código: ${detail})` : ''));
         if (code !== 'otro') this.wantListening.set(false);
         vibrate([100, 60, 100]);
       },
